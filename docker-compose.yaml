@@ -56,5 +56,14 @@ services:
       postgres:
         condition: service_healthy
 
+  wrapper_api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
 volumes:
   pgdata:

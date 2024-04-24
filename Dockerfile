@@ -9,4 +9,9 @@ ENV PYTHONDONTWRITEBYTECODE=1
 COPY ./requirements.txt .
 RUN python -m pip install -r requirements.txt
 
+# tomorrow app
 COPY ./tomorrow /app/tomorrow
+
+# fastAPI layer
+COPY ./wrapper_api /app/wrapper_api
+CMD ["uvicorn", "wrapper_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
