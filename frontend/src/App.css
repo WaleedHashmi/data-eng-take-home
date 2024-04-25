@@ -1,0 +1,81 @@
+.App {
+  text-align: center;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 10vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+select {
+  margin: 20px;
+  padding: 10px;
+  font-size: 16px;
+}
+
+table {
+  margin-top: 20px;
+  width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px;
+}
+
+th {
+  background-color: #04AA6D;
+  color: white;
+}
+
+tr:nth-child(even) {
+  background-color: #f2f2f2;
+}
+
+svg {
+  display: block;
+  margin: auto;
+}
+
+
+.custom-select {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    padding-right: 2.5rem; /* make room for the arrow */
+    font-size: 16px;
+    line-height: 1.5;
+    color: #444;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ccc;
+    border-radius: 0.25rem;
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    position: relative;
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    appearance: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.075);
+    background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg width="12" height="12" viewBox="0 0 4 5" xmlns="http://www.w3.org/2000/svg"%3E%3Cpath fill="%23000" d="M2 5L0 3h4z"%3E%3C/path%3E%3C/svg%3E');
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 12px 12px;
+}
+
+.custom-select:focus {
+    border-color: #80bdff;
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.custom-select:hover {
+    border-color: #0056b3;
+}
