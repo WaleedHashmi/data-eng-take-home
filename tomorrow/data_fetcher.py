@@ -1,21 +1,18 @@
 import traceback
 import requests
 from datetime import datetime
-from tomorrow.models import WeatherData
-from tomorrow.utils import configure_logging
+from tomorrow.models import WeatherDataDaily, WeatherDataHourly, WeatherDataMinutely
+from tomorrow.utils import configure_logging, camel_to_snake
 from tomorrow.config import get_api_key, get_database_url
 from tomorrow.db_utils import get_session
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 
-# Configure logger
 logger = configure_logging()
-
 
 def fetch_data():
     try:
         logger.info("Fetching data...")
-
         db_url = get_database_url()
         session = get_session(db_url)
 
@@ -43,48 +40,29 @@ def fetch_data():
             response.raise_for_status()
             data = response.json()
 
-            for item in data['timelines']['minutely']:
-                values = item['values']
-                record = WeatherData(
-                    time=datetime.fromisoformat(item['time']),
-                    location=location,
-                    cloud_base=values.get('cloudBase'),
-                    cloud_ceiling=values.get('cloudCeiling'),
-                    cloud_cover=values.get('cloudCover'),
-                    dew_point=values.get('dewPoint'),
-                    freezing_rain_intensity=values.get('freezingRainIntensity'),
-                    humidity=values.get('humidity'),
-                    precipitation_probability=values.get('precipitationProbability'),
-                    pressure_surface_level=values.get('pressureSurfaceLevel'),
-                    rain_intensity=values.get('rainIntensity'),
-                    sleet_intensity=values.get('sleetIntensity'),
-                    snow_intensity=values.get('snowIntensity'),
-                    temperature=values.get('temperature'),
-                    temperature_apparent=values.get('temperatureApparent'),
-                    uv_health_concern=values.get('uvHealthConcern'),
-                    uv_index=values.get('uvIndex'),
-                    visibility=values.get('visibility'),
-                    weather_code=values.get('weatherCode'),
-                    wind_direction=values.get('windDirection'),
-                    wind_gust=values.get('windGust'),
-                    wind_speed=values.get('windSpeed')
-                )
+            timelines = {
+                'daily': WeatherDataDaily,
+                'hourly': WeatherDataHourly,
+                'minutely': WeatherDataMinutely
+            }
 
-                try:
-                    existing_record = session.query(WeatherData
-                                                    ).filter_by(time=record.time,location=record.location).one()
+            for timeline_key, model_class in timelines.items():
+                for item in data['timelines'][timeline_key]:
+                    record = model_class(time=datetime.fromisoformat(item['time']), location=location)
+                    model_fields = {camel_to_snake(column.name): column.name for column in model_class.__table__.columns}
 
-                    # Update existing record if exists
-                    for attr in vars(record):
-                        if attr.startswith('_'):
-                            continue
-                        setattr(existing_record, attr, getattr(record, attr))
+                    for key, value in item['values'].items():
+                        snake_key = camel_to_snake(key)
+                        if snake_key in model_fields:
+                            setattr(record, snake_key, value)
 
-                    existing_record.updated_at = datetime.now()
-
-                except NoResultFound:
-                    # If the record doesn't exist, add a new one
-                    session.add(record)
+                    try:
+                        existing_record = session.query(model_class).filter_by(time=record.time, location=record.location).one()
+                        for key in model_fields:
+                            setattr(existing_record, key, getattr(record, key))
+                        existing_record.updated_at = datetime.now()
+                    except NoResultFound:
+                        session.add(record)
 
             session.commit()
 
@@ -92,11 +70,10 @@ def fetch_data():
         logger.error(f"HTTP error occurred: {http_err}")
     except IntegrityError as e:
         logger.error(f"Integrity error occurred: {e}")
-        session.rollback()  # Rollback the transaction to prevent partial data insertion
+        session.rollback()
     except Exception as err:
         logger.error(f"An error occurred: {err}")
         logger.error(traceback.format_exc())
-
 
 if __name__ == "__main__":
     fetch_data()

@@ -17,3 +17,6 @@ def configure_logging():
         ]
     )
     return logging.getLogger(__name__)
+
+def camel_to_snake(name):
+    return ''.join(['_' + i.lower() if i.isupper() else i for i in name]).lstrip('_')
