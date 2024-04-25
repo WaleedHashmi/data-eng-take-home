@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException
 from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List, Optional
 
 from tomorrow.config import get_database_url
@@ -9,6 +10,14 @@ from tomorrow.models import WeatherData
 from wrapper_api.models import WeatherDataResponse
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"],  
+)
 
 SQLALCHEMY_DATABASE_URL = get_database_url()
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
